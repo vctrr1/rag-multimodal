@@ -21,6 +21,7 @@ def limpar_pdf(nome_arquivo_original, nome_arquivo_saida, paginas_a_manter):
     with open(caminho_saida, "wb") as f:
         writer.write(f)
     print(f"PDF limpo salvo em: {caminho_saida}")
+    return caminho_saida
 
 
 def extrair_elementos_do_manual(caminho_pdf_processado, nome_projeto):
