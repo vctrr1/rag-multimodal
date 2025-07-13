@@ -1,24 +1,22 @@
-import os 
+import os
+from pathlib import Path
 from dotenv import load_dotenv
 
+# Carrega variáveis do .env
 load_dotenv()
 
+# Verifica a chave da API
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
 if not GOOGLE_API_KEY:
     raise ValueError("A chave da API do Google não foi encontrada. Verifique se o arquivo .env existe e contém a variável GOOGLE_API_KEY.")
 
-#Paths
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__)).parent
+# Caminhos do projeto
+PROJECT_ROOT = Path(__file__).resolve().parent
+DATA_DIR = PROJECT_ROOT / "data"
+RAW_DATA_DIR = DATA_DIR / "raw"
+PROCESSED_DATA_DIR = DATA_DIR / "processed"
+OUTPUTS_DIR = PROJECT_ROOT / "output"
+IMAGE_DIR = OUTPUTS_DIR / "extracted_images"
+DB_DIR = OUTPUTS_DIR / "db"
 
-# Caminhos para os dados
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-RAW_DATA_DIR = os.path.join(DATA_DIR, "raw")
-PROCESSED_DATA_DIR = os.path.join(DATA_DIR, "processed")
-
-# Caminhos para os arquivos de saída
-OUTPUTS_DIR = os.path.join(PROJECT_ROOT, "output")
-IMAGE_DIR = os.path.join(OUTPUTS_DIR, "extracted_images")
-DB_DIR = os.path.join(OUTPUTS_DIR, "db")
-
-print("config carregada com sucesso.")
+print("Config carregada com sucesso.")
