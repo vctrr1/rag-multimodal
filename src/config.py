@@ -11,7 +11,7 @@ if not GOOGLE_API_KEY:
     raise ValueError("A chave da API do Google não foi encontrada. Verifique se o arquivo .env existe e contém a variável GOOGLE_API_KEY.")
 
 # Caminhos do projeto
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
