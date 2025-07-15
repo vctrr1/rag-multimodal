@@ -1,4 +1,3 @@
-# Importa as funções que criamos nos módulos de 'src'
 from src.data_processing import limpar_pdf, extrair_elementos_do_manual
 from src.vector_db import popular_banco_vetorial
 

@@ -34,15 +34,10 @@ def extrair_elementos_do_manual(caminho_pdf_processado, nome_projeto):
 
     elementos = partition_pdf(
         filename = caminho_pdf_processado,
-        # Estratégia "hi_res" para PDFs com leiaute complexo
         strategy = "hi_res",
-        # Extrai imagens contidas no PDF
         extract_images_in_pdf = True,
-        # Usa o modelo de detecção de leiaute para entender tabelas
         infer_table_structure = True,
-        # Idioma para melhorar a extração de texto
         languages = ["por"],
-        # Diretório para salvar os arquivos de imagem
         extract_image_block_output_dir = pasta_imagens,
     )
     
@@ -65,11 +60,9 @@ def gerar_resumo_com_gemini(conteudo, tipo_conteudo):
         genai.configure(api_key=GOOGLE_API_KEY)
     except Exception as e:
         print(f"Erro ao configurar a API do Google Generative AI: {e}")
-
-    """Usa o Gemini 1.5 Pro para gerar um resumo textual de uma imagem ou tabela."""
+    
     model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
 
-    # Prompts que definimos anteriormente...
     prompt_imagem = """
         Você é um engenheiro biomédico especialista em equipamentos hospitalares. 
         Sua tarefa é analisar a imagem de um manual de bomba de infusão e descrevê-la em detalhes técnicos precisos.
