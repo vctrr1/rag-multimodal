@@ -4,7 +4,7 @@ from unstructured.partition.pdf import partition_pdf
 from PIL import Image
 import google.generativeai as genai
 
-from config import RAW_DATA_DIR, PROCESSED_DATA_DIR, IMAGE_DIR, GOOGLE_API_KEY
+from src.config import RAW_DATA_DIR, PROCESSED_DATA_DIR, IMAGE_DIR, GOOGLE_API_KEY
 
 def limpar_pdf(nome_arquivo_original, nome_arquivo_saida, paginas_a_manter):
 
