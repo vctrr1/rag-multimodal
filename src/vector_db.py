@@ -52,11 +52,3 @@ def popular_banco_vetorial(textos, tabelas, imagens, nome_manual):
     print("Adicionando dados ao ChromaDB...")
     collection.add(embeddings=embeddings, documents=documentos, metadatas=metadados, ids=ids)
     print(f"Banco de dados vetorial populado com sucesso! Total de vetores: {collection.count()}")
-
-def buscar_no_banco_vetorial(query, top_k=5):
-    # Gera o embedding para a pergunta do usuário
-    query_embedding = embedding_model.encode(query).tolist()
-    
-    # Faz a busca na coleção
-    resultados = collection.query(query_embeddings=[query_embedding], n_results=top_k)
-    return resultados
