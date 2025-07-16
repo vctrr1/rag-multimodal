@@ -3,23 +3,23 @@ from src.vector_db import popular_banco_vetorial
 
 NOME_ARQUIVO_ORIGINAL = "E-Link_Lifemed.pdf"
 NOME_ARQUIVO_LIMPO = "E-Link_Lifemed_clean.pdf"
-PAGINAS_PARA_MANTER = range(5, 59) # Manter da página 6 até a 59
+PAGINAS_PARA_MANTER = range(6, 75) # Manter da página 7 até a 75
 
 def exec_pipeline():
 
     print("--- INICIANDO PIPELINE DE PROCESSAMENTO DE DADOS --- ")
 
-    # ETAPA 1: Limpar o PDF, removendo páginas desnecessárias
+    # remove páginas desnecessarias
     caminho_pdf_limpo = limpar_pdf(
         NOME_ARQUIVO_ORIGINAL,
         NOME_ARQUIVO_LIMPO,
         PAGINAS_PARA_MANTER
     )
 
-    # ETAPA 2: Extrair elementos do PDF que foi limpo
+    # extrair elementos do PDF que foi limpo
     textos, tabelas, imagens = extrair_elementos_do_manual(caminho_pdf_limpo, NOME_ARQUIVO_ORIGINAL.split('.')[0])
     
-    # ETAPA 3: Popular o banco de dados vetorial com os elementos extraídos
+    # Popular o banco de dados com os elementos extraídos
     popular_banco_vetorial(textos, tabelas, imagens, NOME_ARQUIVO_ORIGINAL.split('.')[0])
     
     print("\n--- PIPELINE CONCLUÍDO COM SUCESSO! ---")
