@@ -48,11 +48,7 @@ def gerar_resposta_com_llm(pergunta: str, contexto: str, model: genai.Generative
     return resposta_final.text
 
 def responder_pergunta(pergunta: str, collection: chromadb.Collection, model: genai.GenerativeModel) -> str:
-    """
-    Orquestra o processo de RAG de forma modular.
-    1. Busca o contexto no banco de dados vetorial.
-    2. Gera a resposta com o modelo de linguagem.
-    """
+
     print(f">>> Processando pergunta: {pergunta}")
     
     #Recuperação (Retrieval)

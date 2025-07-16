@@ -6,6 +6,13 @@ import google.generativeai as genai
 
 from src.config import RAW_DATA_DIR, PROCESSED_DATA_DIR, IMAGE_DIR, GOOGLE_API_KEY
 
+try:
+    genai.configure(api_key=GOOGLE_API_KEY)
+except Exception as e:
+    print(f"Erro ao configurar a API do Google Generative AI: {e}")
+
+model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
+
 def limpar_pdf(nome_arquivo_original, nome_arquivo_saida, paginas_a_manter):
 
     caminho_original = os.path.join(RAW_DATA_DIR, nome_arquivo_original)
@@ -53,30 +60,29 @@ def extrair_elementos_do_manual(caminho_pdf_processado, nome_projeto):
 
     return textos, tabelas_html, imagens
 
-
-def gerar_resumo_com_gemini(conteudo, tipo_conteudo):
-
-    try:
-        genai.configure(api_key=GOOGLE_API_KEY)
-    except Exception as e:
-        print(f"Erro ao configurar a API do Google Generative AI: {e}")
-    
-    model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
-
-    prompt_imagem = """
-        Você é um engenheiro biomédico especialista em equipamentos hospitalares. 
-        Sua tarefa é analisar a imagem de um manual de bomba de infusão e descrevê-la em detalhes técnicos precisos.
-        Descreva todos os componentes visíveis, como botões, tela, indicadores LED, conexões e símbolos. 
-        Se houver texto na imagem, transcreva-o. Seja minucioso para que esta descrição possa ser usada para responder a perguntas técnicas sobre o equipamento.
+def gerar_resumo(conteudo, tipo_conteudo):
+    prompt_base = {
+        "imagem": """
+        **Sua Tarefa:** Você é um Engenheiro de Documentação Técnica.
+        **Objetivo:** Descrever a imagem de um componente da bomba de infusão E-Link de forma ultra detalhada para um banco de dados de RAG.
+        **Instruções:**
+        1.  **Descrição Física:** Descreva a cor, formato, material aparente, e quaisquer ícones ou símbolos presentes no componente. Ex: "Botão redondo, de plástico azul, com um ícone branco de 'play/pause' no centro".
+        2.  **Texto na Imagem:** Transcreva literalmente qualquer texto visível na imagem, incluindo legendas ou indicadores.
+        3.  **Contexto Funcional:** Com base na imagem e no seu conhecimento de equipamentos médicos, descreva a provável função deste componente. Ex: "Este é o botão principal de Iniciar/Parar a infusão".
+        4.  **Localização:** Se possível, descreva onde este componente parece estar localizado no painel do equipamento.
+        **Seja preciso e denso em informação. A qualidade da resposta do chatbot depende da qualidade desta descrição.**
         """,
-    prompt_tabela = """
-        Você é um analista de dados especialista em documentação técnica.
-        Sua tarefa é analisar a seguinte tabela (em formato HTML) extraída de um manual de bomba de infusão.
-        Resuma o propósito da tabela e extraia as informações mais críticas contidas nela em um formato de texto claro e legível.
-        Preserve os valores e unidades exatas. O objetivo é que este resumo textual represente fielmente os dados da tabela para buscas futuras.
+        "tabela": """
+        **Sua Tarefa:** Você é um Analista de Dados e Engenheiro Clínico.
+        **Objetivo:** Extrair e estruturar TODAS as informações críticas da tabela em formato HTML para um banco de dados de RAG.
+        **Instruções:**
+        1.  **Extração Completa:** Não resuma. Liste cada parâmetro e seu valor/descrição correspondente da tabela. Ex: "Parâmetro: Vazão (Modo Gotas); Valor: 1 a 500 gotas/min".
+        2.  **Preservar Unidades:** Sempre inclua as unidades de medida (mL/h, gotas/min, kg, mm, V, Hz).
+        3.  **Formato Claro:** Use formatação de texto (como listas ou "Parâmetro: Valor") para tornar os dados fáceis de ler e interpretar pelo modelo de linguagem final.
+        4.  **Propósito da Tabela:** Comece com uma frase que descreve o propósito geral da tabela. Ex: "Esta tabela detalha as especificações técnicas completas da bomba de infusão E-Link."
+        **A precisão é crucial. Não omita nenhum dado técnico.**
         """
-    
-    prompt_base = {"imagem": prompt_imagem, "tabela": prompt_tabela}
+    }
 
     if tipo_conteudo == "imagem":
         prompt = prompt_base["imagem"]
@@ -87,5 +93,5 @@ def gerar_resumo_com_gemini(conteudo, tipo_conteudo):
         response = model.generate_content(f"{prompt}\n\nAqui está a tabela em HTML:\n{conteudo}")
     else:
         return ""
-    
+
     return response.text
