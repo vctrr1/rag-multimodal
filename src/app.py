@@ -19,8 +19,9 @@ def app():
     try:
         client = chromadb.PersistentClient(path=DB_DIR)
         collection = client.get_collection("manuals")
+        print(f"✅ Conectado ao banco de dados vetorial. {collection.count()} seções carregadas.")
     except Exception as e:
-        print(f"❌ Erro ao conectar ao ChromaDB: {e}")
+        print(f"Erro ao conectar ao ChromaDB: {e}")
         return
 
     print("\nDigite sua pergunta ou 'sair' para encerrar.\n")

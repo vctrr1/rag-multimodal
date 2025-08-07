@@ -6,3 +6,5 @@ Include/
 share/
 
 **/__pycache__/
+
+outputs/

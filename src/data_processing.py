@@ -1,4 +1,6 @@
 import os
+import re
+import hashlib
 from pypdf import PdfWriter, PdfReader
 from unstructured.partition.pdf import partition_pdf
 from PIL import Image
@@ -47,18 +49,8 @@ def extrair_elementos_do_manual(caminho_pdf_processado, nome_projeto):
         languages = ["por"],
         extract_image_block_output_dir = pasta_imagens,
     )
-    
-    # Separa os elementos por tipo para facilitar o processamento
-    textos = [el for el in elementos if el.category == "NarrativeText" or el.category == "Title"]
-    tabelas_html = [el for el in elementos if el.category == "Table"]
-    imagens = [el for el in elementos if el.category == "Image"]
-
-    print(f"Extração concluída. Encontrados:")
-    print(f"- {len(textos)} blocos de texto")
-    print(f"- {len(tabelas_html)} tabelas")
-    print(f"- {len(imagens)} imagens")
-
-    return textos, tabelas_html, imagens
+    print(f"Extração concluída. {len(elementos)} elementos brutos encontrados.")
+    return elementos
 
 def gerar_resumo(conteudo, tipo_conteudo):
     prompt_base = {
@@ -95,3 +87,65 @@ def gerar_resumo(conteudo, tipo_conteudo):
         return ""
 
     return response.text
+
+def agrupar_elementos_por_secao(elementos):
+
+    # regex pra identificar títulos de seção
+    padrao_titulo = re.compile(r'^\d+(\.\d+)*\s|\bApêndice\s[A-Z]\b')
+    
+    secoes_agrupadas = []
+    chunk_atual = None
+    hashes_de_imagens_vistas = set()
+
+    print("Iniciando o agrupamento semântico por seções...")
+
+    for el in elementos:
+        # Verifica se o elemento é um título de seção
+        e_titulo = (el.category == "Title" or el.category == "UncategorizedText") and padrao_titulo.match(el.text)
+
+        if e_titulo:
+            if chunk_atual:
+                secoes_agrupadas.append(chunk_atual)
+            
+            chunk_atual = {
+                "titulo_secao": el.text,
+                "conteudo_combinado": f"INÍCIO DA SEÇÃO: {el.text}\n\n",
+                "paginas": {el.metadata.page_number}
+            }
+        elif chunk_atual:
+            conteudo_para_adicionar = ""
+            
+            if "Text" in el.category:
+                conteudo_para_adicionar = el.text
+            
+            elif el.category == "Table":
+                resumo_tabela = gerar_resumo(el.metadata.text_as_html, "tabela")
+                conteudo_para_adicionar = f"\n--- TABELA ENCONTRADA ---\n{resumo_tabela}\n--- FIM DA TABELA ---\n"
+
+            elif el.category == "Image":
+                caminho_imagem = el.metadata.image_path
+                hash_atual = calcular_hash_imagem(caminho_imagem)
+                
+                if hash_atual not in hashes_de_imagens_vistas:
+                    hashes_de_imagens_vistas.add(hash_atual)
+                    resumo_imagem = gerar_resumo(caminho_imagem, "imagem")
+                    conteudo_para_adicionar = f"\n--- IMAGEM DESCRITA ---\n{resumo_imagem}\n--- FIM DA DESCRIÇÃO ---\n"
+
+            if conteudo_para_adicionar:
+                chunk_atual["conteudo_combinado"] += conteudo_para_adicionar + "\n"
+                if hasattr(el.metadata, 'page_number'):
+                    chunk_atual["paginas"].add(el.metadata.page_number)
+
+    if chunk_atual:
+        secoes_agrupadas.append(chunk_atual)
+
+    print(f"Agrupamento concluído. {len(secoes_agrupadas)} seções semânticas foram criadas.")
+    return secoes_agrupadas
+
+def calcular_hash_imagem(caminho_imagem):
+    """Calcula o hash SHA-256 de um arquivo de imagem."""
+    sha256_hash = hashlib.sha256()
+    with open(caminho_imagem, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
